@@ -30,7 +30,7 @@ const Server = new Hapi.Server({
 
 async function beginServer() {
 	try {
-		await Server.register([require('./health'), require('./mail')]);
+		await Server.register([require('./health'), require('./v1/mail')]);
 
 		console.log(`Server is running on port ${port}`);
 
