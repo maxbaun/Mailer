@@ -2,6 +2,7 @@ import Joi from 'joi';
 import Boom from 'boom';
 import Twig from 'twig';
 import {existsSync} from 'fs';
+import nodemailer from 'nodemailer';
 import path from 'path';
 import * as Aws from 'aws-sdk';
 const {hasOwnProperty} = Object.prototype;
@@ -12,20 +13,22 @@ Aws.config.update({
 	secretAccessKey: process.env.AWS_SECRETACCESSKEY
 });
 
-exports.plugin = {register, name: 'v1mail'};
+exports.plugin = {register, name: 'v2mail'};
 
 async function register(plugin) {
 	await plugin.route([
 		{
-			path: '/v1/mail',
+			path: '/v2/mail',
 			method: 'POST',
 			handler: sendMessage,
 			config: {
 				validate: {
 					payload: Joi.object().keys({
-						replyTo: Joi.string().required(),
 						subject: Joi.string().required(),
-						email: Joi.string().required(),
+						toName: Joi.string().required(),
+						toEmail: Joi.string().required(),
+						fromName: Joi.string().required(),
+						fromEmail: Joi.string().required(),
 						// Used in the footer
 						website: Joi.string().required(),
 						// If the Body paramater is supplied, the email will be sent out as an html message
@@ -41,49 +44,51 @@ async function register(plugin) {
 }
 
 async function sendMessage(req) {
-	let params = await getEmailParams(req);
-	let res;
+	let testAccount = await createTestAccount();
+	let transporter = createTransporter(testAccount);
 
-	try {
-		res = await new Aws.SES({apiVersion: '2010-12-01'}).sendEmail(params).promise();
-	} catch (err) {
-		console.log('There as an error sending the message');
-		console.error(err);
-		throw new Boom(err.message, {...err});
-	}
-
-	return res;
-}
-
-async function getEmailParams(req) {
-	const params = {
-		Destination: {
-			ToAddresses: [req.payload.email]
-		},
-		Source: 'max@d3applications.com',
-		ReplyToAddresses: [req.payload.replyTo],
-		Message: {
-			Body: {},
-			Subject: {
-				Charset: 'UTF-8',
-				Data: req.payload.subject
-			}
-		}
+	let message = {
+		from: `${req.payload.fromName} <${req.payload.fromEmail}`,
+		to: `${req.payload.toName} <${req.payload.toEmail}>`,
+		subject: req.payload.subject,
+		html: await getHtmlMesage(req.payload)
 	};
 
-	if (req.payload.body) {
-		params.Message.Body.Html = {
-			Charset: 'UTF-8',
-			Data: await getHtmlMesage(req.payload)
-		};
-	} else if (req.payload.message) {
-		params.Message.Body.Text = {
-			Charset: 'UTF-8',
-			Data: req.payload.message
-		};
-	}
+	return new Promise((resolve, reject) => {
+		transporter.sendMail(message, (err, res) => {
+			if (err) {
+				console.log('There as an error sending the message');
+				console.error(err);
+				reject(new Boom(err.message, {...err}));
+			}
 
-	return params;
+			return resolve(nodemailer.getTestMessageUrl(res));
+		});
+	});
+}
+
+async function createTestAccount() {
+	return new Promise((resolve, reject) => {
+		nodemailer.createTestAccount((err, account) => {
+			if (err) {
+				return reject(err);
+			}
+
+			return resolve(account);
+		});
+	});
+}
+
+function createTransporter(account) {
+	return nodemailer.createTransport({
+		host: account.smtp.host,
+		port: account.smtp.port,
+		secure: account.smtp.secure,
+		auth: {
+			user: account.user,
+			pass: account.pass
+		}
+	});
 }
 
 async function getHtmlMesage(payload) {
