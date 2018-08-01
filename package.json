@@ -1,0 +1,45 @@
+{
+	"name": "d3-mailer",
+	"version": "1.0.0",
+	"description": "An API for mailchimp",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"build": "babel ./src -d public",
+		"start": "NODE_ENV=production node public/index.js",
+		"dev": "NODE_ENV=development node_modules/.bin/babel-watch src/index.js",
+		"postinstall": "npm run build"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/maxbaun/Mailchimp.git"
+	},
+	"author": "Max Baun",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/maxbaun/Mailchimp/issues"
+	},
+	"homepage": "https://github.com/maxbaun/Mailchimp#readme",
+	"devDependencies": {
+		"babel-plugin-transform-inline-environment-variables": "^0.4.3",
+		"babel-plugin-transform-runtime": "^6.23.0",
+		"babel-polyfill": "^6.26.0",
+		"babel-preset-env": "^1.7.0",
+		"babel-preset-latest": "^6.24.1",
+		"babel-preset-stage-2": "^6.24.1",
+		"babel-watch": "^2.0.7",
+		"eslint": "^5.0.1",
+		"eslint-config-xo": "^0.23.0"
+	},
+	"dependencies": {
+		"aws-sdk": "^2.284.1",
+		"axios": "^0.18.0",
+		"babel-cli": "^6.26.0",
+		"babel-runtime": "^6.26.0",
+		"boom": "^7.2.0",
+		"hapi": "^17.5.2",
+		"immutable": "^3.8.2",
+		"joi": "^13.4.0",
+		"twig": "^1.12.0"
+	}
+}

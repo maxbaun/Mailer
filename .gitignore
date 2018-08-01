@@ -1,0 +1,7 @@
+.vagrant
+dump/*
+
+!dump/.gitkeep
+node_modules
+.DS_Store
+public
