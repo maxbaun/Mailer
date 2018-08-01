@@ -1,13 +1,15 @@
 import Joi from 'joi';
 import Boom from 'boom';
 import Twig from 'twig';
-import {existsSync, readFileSync} from 'fs';
+import {existsSync} from 'fs';
 import path from 'path';
 import * as Aws from 'aws-sdk';
 const {hasOwnProperty} = Object.prototype;
 
 Aws.config.update({
-	region: 'us-east-1'
+	region: 'us-east-1',
+	accessKeyId: process.env.AWS_ACCESSKEYID,
+	secretAccessKey: process.env.AWS_SECRETACCESSKEY
 });
 
 exports.plugin = {register, name: 'mail'};
@@ -135,5 +137,3 @@ function getBodyParamsArray(body) {
 
 	return str;
 }
-
-function getUtfMessage(body) {}
