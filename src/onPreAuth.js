@@ -7,7 +7,7 @@ module.exports = {
 
 function onPreAuth(request, h) {
 	if (!request.info.cors.isOriginMatch) {
-		console.log(JSON.stringify(request.headers));
+		console.error(JSON.stringify(request.headers, null, 4));
 		throw Boom.unauthorized('The request does not match the set origins.');
 	}
 
