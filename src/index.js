@@ -7,14 +7,15 @@ console.log('*******');
 console.log(origins);
 console.log('*******');
 
-// Const isDev = process.env.NODE_ENV === 'development';
+const isDev = process.env.NODE_ENV === 'development';
 
-const Server = new Hapi.Server({
+const serverConfig = {
+	host: isDev ? 'localhost' : null,
 	port,
 	router: {stripTrailingSlash: true},
 	routes: {
 		cors: {
-			origin: origins || ['*']
+			origin: origins
 		},
 		validate: {
 			failAction: async (request, h, err) => {
@@ -26,10 +27,13 @@ const Server = new Hapi.Server({
 			}
 		}
 	}
-});
+};
+
+const Server = new Hapi.Server(serverConfig);
 
 async function beginServer() {
 	try {
+		await Server.ext(require('./onPreAuth'));
 		await Server.register([require('./health'), require('./v1/mail'), require('./v2/mail')]);
 
 		console.log(`Server is running on port ${port}`);
